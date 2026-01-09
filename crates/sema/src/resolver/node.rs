@@ -651,7 +651,24 @@ impl<'ctx> MutSelfTypedResultWalker<'ctx> for Resolver<'_> {
     }
 
     fn walk_dict_comp(&mut self, dict_comp: &'ctx ast::DictComp) -> Self::Result {
-        if dict_comp.entry.key.is_none() {
+        if let Some(key) = &dict_comp.entry.key {
+            let end = match dict_comp.generators.last() {
+                Some(last) => last.get_end_pos(),
+                None => dict_comp.entry.value.get_end_pos(),
+            };
+            let start = key.get_pos();
+            self.enter_scope(start.clone(), end, ScopeKind::Loop);
+            for comp_clause in &dict_comp.generators {
+                self.walk_comp_clause(&comp_clause.node);
+            }
+            let key_ty = self.expr(key);
+            self.check_attr_ty(&key_ty, key.get_span_pos());
+            let stack_depth = self.switch_config_expr_context_by_key(&dict_comp.entry.key);
+            let val_ty = self.expr(&dict_comp.entry.value);
+            self.clear_config_expr_context(stack_depth, false);
+            self.leave_scope();
+            Type::dict_ref(key_ty, val_ty)
+        } else {
             self.handler.add_compile_error(
                 "dict unpacking cannot be used in dict comprehension",
                 dict_comp.entry.value.get_span_pos(),
@@ -693,24 +710,6 @@ impl<'ctx> MutSelfTypedResultWalker<'ctx> for Resolver<'_> {
                     self.any_ty()
                 }
             };
-            self.clear_config_expr_context(stack_depth, false);
-            self.leave_scope();
-            Type::dict_ref(key_ty, val_ty)
-        } else {
-            let key = dict_comp.entry.key.as_ref().unwrap();
-            let end = match dict_comp.generators.last() {
-                Some(last) => last.get_end_pos(),
-                None => dict_comp.entry.value.get_end_pos(),
-            };
-            let start = key.get_pos();
-            self.enter_scope(start.clone(), end, ScopeKind::Loop);
-            for comp_clause in &dict_comp.generators {
-                self.walk_comp_clause(&comp_clause.node);
-            }
-            let key_ty = self.expr(key);
-            self.check_attr_ty(&key_ty, key.get_span_pos());
-            let stack_depth = self.switch_config_expr_context_by_key(&dict_comp.entry.key);
-            let val_ty = self.expr(&dict_comp.entry.value);
             self.clear_config_expr_context(stack_depth, false);
             self.leave_scope();
             Type::dict_ref(key_ty, val_ty)

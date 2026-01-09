@@ -1085,7 +1085,7 @@ impl<'a> Parser<'a> {
                     && assign.targets.len() == 1
                 {
                     let target = assign.targets[0].clone().node;
-                    if assign.ty.is_some() {
+                    if let Some(ty) = assign.ty {
                         body_body.push(node_ref!(
                             Stmt::SchemaAttr(SchemaAttr {
                                 doc: "".to_string(),
@@ -1093,7 +1093,7 @@ impl<'a> Parser<'a> {
                                     target.get_name().to_string(),
                                     assign.targets[0].pos()
                                 ),
-                                ty: assign.ty.unwrap(),
+                                ty,
                                 op: Some(AugOp::Assign),
                                 value: Some(assign.value),
                                 is_optional: false,
@@ -1102,7 +1102,7 @@ impl<'a> Parser<'a> {
                             x.pos()
                         ));
                         continue;
-                    };
+                    }
                 }
 
                 body_body.push(x);
