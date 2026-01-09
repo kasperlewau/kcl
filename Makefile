@@ -54,8 +54,8 @@ gen-runtime-api: ## Generate runtime libraries when the runtime code is changed
 install-rustc-wasm-wasi: ## Install the wasm-wasi target
 	rustup target add wasm32-wasip1
 
-install-test-deps: ## Install python3 pytest
-	python3 -m pip install --user -U pytest pytest-html pytest-xdist ruamel.yaml
+install-test-deps: ## Ensure uv dependencies are synced
+	uv sync
 
 # ------------------------
 # Tests
@@ -64,11 +64,11 @@ install-test-deps: ## Install python3 pytest
 test: ## Unit tests without code cov
 	cargo test --workspace -r -- --nocapture
 
-test-runtime: install-test-deps ## Test runtime libaries using python functions
-	cd tests/runtime && PYTHONPATH=. python3 -m pytest -vv || { echo 'runtime test failed' ; exit 1; }
+test-runtime: ## Test runtime libaries using python functions
+	uv run pytest tests/runtime -vv || { echo 'runtime test failed' ; exit 1; }
 
-test-grammar: install-test-deps ## E2E grammar tests with the fast evaluator
-	cd tests/grammar && python3 -m pytest -v -n 5
+test-grammar: ## E2E grammar tests with the fast evaluator
+	PATH="${PWD}/target/release:${PWD}/target/debug:${PATH}" uv run pytest tests/grammar -n 5
 
 help: ## Display this help screen
 	@grep -h -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
