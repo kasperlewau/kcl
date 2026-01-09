@@ -463,8 +463,8 @@ impl<'ctx> MutSelfMutWalker<'ctx> for OverrideTransformer {
                                         if let ast::Expr::Schema(schema_expr) = value.node
                                             && self.field_paths.is_empty()
                                         {
-                                            unification_stmt.value =
-                                                Box::new(ast::Node::dummy_node(schema_expr));
+                                            *unification_stmt.value =
+                                                ast::Node::dummy_node(schema_expr);
                                             self.has_override = true;
                                         }
                                     }
@@ -475,8 +475,8 @@ impl<'ctx> MutSelfMutWalker<'ctx> for OverrideTransformer {
                                     if let ast::Expr::Schema(schema_expr) = value.node
                                         && self.field_paths.is_empty()
                                     {
-                                        unification_stmt.value =
-                                            Box::new(ast::Node::dummy_node(schema_expr));
+                                        *unification_stmt.value =
+                                            ast::Node::dummy_node(schema_expr);
                                         self.has_override = true;
                                     }
                                 }

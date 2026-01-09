@@ -22,7 +22,7 @@ pub fn bench_test(_attr: TokenStream, item: TokenStream) -> TokenStream {
         }
     };
 
-    input_fn.block = Box::new(syn::parse2(timing_code).unwrap());
+    *input_fn.block = syn::parse2(timing_code).unwrap();
 
     let output = quote! {
         #input_fn
