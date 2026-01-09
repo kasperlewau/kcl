@@ -63,7 +63,14 @@ impl ValueRef {
                 _ => panic!("schema object attr '{key}' not found"),
             };
             let closure = ValueRef::list(Some(&[p]));
-            ValueRef::func(function as usize as u64, 0, closure, "", "", false)
+            ValueRef::func(
+                function as *const () as usize as u64,
+                0,
+                closure,
+                "",
+                "",
+                false,
+            )
         } else {
             panic!(
                 "invalid value '{}' to load attribute '{}'",
